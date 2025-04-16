@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe - Cool Edition</title>
+  <style>
+    /* Body style with a cool purple gradient background and flex centering */
+    body {
+      background: linear-gradient(135deg, #4b0082, #800080);
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    /* Glowing header with animated text shadow */
+    h1 {
+      margin-bottom: 20px;
+      font-size: 3em;
+      animation: text-glow 1.5s infinite alternate;
+    }
+    @keyframes text-glow {
+      from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
+      }
+      to {
+        text-shadow: 0 0 20px #fff, 0 0 40px #ff00ff;
+      }
+    }
+    /* Game board styled as a grid with a black background and cool shadow effects */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      background-color: #000;
+      padding: 10px;
+      border: 3px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
+    }
+    /* Each cell has a dark background, border, and a smooth hover effect */
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: #111;
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+    }
+    .cell:hover:not(.taken) {
+      background-color: #222;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+    .cell.taken {
+      cursor: not-allowed;
+    }
+    /* Status text with its own glowing animation */
+    #status {
+      margin-top: 20px;
+      font-size: 1.5rem;
+      animation: status-glow 1.5s infinite alternate;
+    }
+    @keyframes status-glow {
+      from {
+        text-shadow: 0 0 5px #fff, 0 0 10px #ff00ff;
+      }
+      to {
+        text-shadow: 0 0 15px #fff, 0 0 30px #ff00ff;
+      }
+    }
+    /* A cool, rounded button with a gradient, shadow, and scale effect on hover */
+    button {
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 65, 108, 0.8);
+    }
+    /* Footer styling for the credits */
+    footer {
+      margin-top: 30px;
+      text-align: center;
+    }
+    footer p {
+      margin: 5px 0;
+      font-size: 1rem;
+      animation: text-glow 1.5s infinite alternate;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+  <div class="board" id="board"></div>
+  <div id="status">Player X's Turn</div>
+  <button onclick="resetGame()">Restart Game</button>
+  
+  <!-- Footer Credits -->
+  <footer>
+    <p>Made By Lakshya Pilaniya</p>
+    <p>Enjoy the game and keep coding!</p>
+  </footer>
+
+  <script>
+    const board = document.getElementById('board');
+    const status = document.getElementById('status');
+    let currentPlayer = 'X';
+    let gameActive = true;
+
+    // Create the game board with 9 cells
+    function createBoard() {
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.addEventListener('click', () => handleCellClick(cell));
+        board.appendChild(cell);
+      }
+    }
+
+    // Handle a cell being clicked
+    function handleCellClick(cell) {
+      if (!gameActive || cell.classList.contains('taken')) return;
+      cell.textContent = currentPlayer;
+      cell.classList.add('taken');
+
+      const winningCombination = checkWinner();
+      if (winningCombination) {
+        status.textContent = `Player ${currentPlayer} Wins!`;
+        highlightWinningCells(winningCombination);
+        gameActive = false;
+        return;
+      }
+      if (isDraw()) {
+        status.textContent = "It's a Draw!";
+        gameActive = false;
+        return;
+      }
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      status.textContent = `Player ${currentPlayer}'s Turn`;
+    }
+
+    // Check if the current player has won; returns the winning combination if so
+    function checkWinner() {
+      const cells = [...document.querySelectorAll('.cell')];
+      const winningCombinations = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+      ];
+      return winningCombinations.find(combination =>
+        combination.every(index => cells[index].textContent === currentPlayer)
+      );
+    }
+
+    // Highlight the winning cells with a vivid glow
+    function highlightWinningCells(winningCombination) {
+      const cells = [...document.querySelectorAll('.cell')];
+      winningCombination.forEach(index => {
+        cells[index].style.backgroundColor = '#ff4b2b';
+        cells[index].style.boxShadow = '0 0 20px #ff4b2b, 0 0 30px #ff4b2b';
+      });
+    }
+
+    // Check if the game is a draw
+    function isDraw() {
+      return [...document.querySelectorAll('.cell')].every(cell => cell.textContent !== '');
+    }
+
+    // Reset the game to the initial state
+    function resetGame() {
+      board.innerHTML = '';
+      status.textContent = "Player X's Turn";
+      currentPlayer = 'X';
+      gameActive = true;
+      createBoard();
+    }
+
+    // Create the initial game board on load
+    createBoard();
+  </script>
+</body>
+</html>
